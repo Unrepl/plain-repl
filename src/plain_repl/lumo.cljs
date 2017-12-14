@@ -5,7 +5,8 @@
     [cljs.analyzer :as ana]
     [cljs.env :as env]
     [cljs.tagged-literals :as tags]
-    [cljs.js :as cljs]))
+    [cljs.js :as cljs]
+    [clojure.string :as str]))
 
 ;; This file is a work in progress implementation of an upgradable REPL for lumo
 
@@ -150,11 +151,13 @@
   (then [x f] (f x nil)))
 
 (defn accept [socket]
-  (let [in (bytes-stream-reader socket)]
+  (let [in (bytes-stream-reader socket)
+        print-fn #(.write socket (str/join " " %&))]
     (letfn [(repl [] (.write socket "=> ") (read in epl))
             (epl [form e]
               (binding [*in* in
-                        *session-id* 42]
+                        *session-id* 42
+                        *print-fn* print-fn]
                 (if e
                   (do
                     (.write socket (prn-str e))
@@ -163,7 +166,8 @@
             (pl [v e] (then (or e v) l))
             (l [v e]
               (binding [*in* in
-                        *session-id* 42]
+                        *session-id* 42
+                        *print-fn* print-fn]
                 (.write socket (prn-str (or e v)))
                 (repl)))]
       (repl))))
