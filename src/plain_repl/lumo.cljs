@@ -47,8 +47,6 @@
           ; when performing the pushback there should be no pending read
           (when-not (= "" s) (.push ss s)))))))
 
-(def ^:private need-more-chars (js/Error. "NEEDMORECHARS"))
-
 ; a cljs.reader reader that throws trying to read after the last character (unless eof is true)
 ; this allows to trap when the cljs reader needs more input to decide if a token is complete.
 (deftype ThrowingStringPushbackReader [s vpos eof]
@@ -59,12 +57,12 @@
         (let [ch (.charAt s pos)]
           (vreset! vpos (inc pos))
           ch)
-       (when-not eof (throw need-more-chars)))))
+       (when-not eof (throw (js/Error. "NEEDMORECHARS"))))))
   (peek-char [_]
     (let [pos @vpos]
       (if (< pos (.-length s))
         (.charAt s pos)
-        (when-not eof (throw need-more-chars)))))
+        (when-not eof (throw (js/Error. "NEEDMORECHARS"))))))
   rt/IPushbackReader
   (unread [_ ch]
     (vswap! vpos dec)
@@ -81,10 +79,10 @@
           (if-some [[v e] (try
                             [(r/read opts rdr) nil]
                             (catch :default e
-                              (when-not (= e need-more-chars) ; can't get this error when at-eof
+                              (when-not (= (.-message e) "NEEDMORECHARS") ; can't get this error when at-eof
                                 [nil e])))]
             (do
-              (pushback async-reader (subs s @vpos))
+              (pushback async-reader (subs buf @vpos))
               (cb v e))
             (read* opts async-reader cb buf)))))))
 
