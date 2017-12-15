@@ -4,6 +4,8 @@ A Clojure library designed to ... well, that part is up to you.
 
 ## Usage
 
+Make sure you have [lumo 1.8.0-beta](https://github.com/anmonteiro/lumo/releases) or above installed.
+
 Start a lumo socket repl `lumo -c src/ -n '{"port": 5557, "accept": "plain-repl.lumo/accept"}'`.
 
 Start a client `nc localhost 5557`.
