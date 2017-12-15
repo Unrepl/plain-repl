@@ -66,7 +66,8 @@
                   (when (lumo/def-form? form)
                     (let [{:keys [ns name]} (meta value)]
                       (swap! lumo/st assoc-in [::ana/namespaces ns :defs name ::repl-entered-source] form))) ; pr-str of form?
-                  (vreset! lumo/current-ns ns)))
+                  (vreset! lumo/current-ns ana/*cljs-ns*)
+                  (set! *ns* (create-ns @lumo/current-ns))))
               (cb value error))))))
     (catch :default e
       ;; `;;` and `#_`
